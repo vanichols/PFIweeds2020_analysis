@@ -16,9 +16,9 @@ dat %>%
   rowSums(.)
 #4677 total seeds found
 
-datr %>%
+dat %>%
   ungroup() %>%
-  select(UG, UB) %>% 
+  select(UD) %>% 
   summarize_if(is.numeric, sum)
 # 15 unknowns
 15/4677
@@ -34,16 +34,17 @@ datw <-
 wide_datw <- 
   datw %>% 
   pivot_wider(names_from = weed, values_from = seeds) %>% 
-  select(site_name:blockID, AMATU:UB) %>%
+  select(site_name:blockID, AMATU:SETARIA) %>%
   replace(., is.na(.), 0) %>%
   group_by(site_name, sys_trt, cc_trt, blockID) %>%
-  summarise_at(vars(AMATU:UB), sum) 
+  summarise_at(vars(AMATU:SETARIA), sum) 
 
 # environmental data matrix
 
-site_info <- pfi_siteinfo %>%
-  select(
-  distinct(loc_sys, loc, crop_sys, cc_trt) 
+#--I'm not sure what this is supposed to be doing
+site_info <- 
+  pfi_sitemgmt %>%
+  distinct(sys_trt, site_name, crop_sys, cc_trt) 
 
 cc_env <- 
   pfi_ccbio %>%
@@ -57,14 +58,16 @@ cc_env <-
   mutate(cc_trt = as_factor(cc_trt))
 
 # new matrix
-matrix_dat <- wide_datw %>%
+matrix_dat <- 
+  wide_datw %>%
   ungroup() %>%
   #unite(loc_trt_rep_id, loc_sys, cc_trt, rep, sep = "_", remove = TRUE)%>%
   # making into matrix
   #column_to_rownames("loc_trt_rep_id")
-  select(-c(loc:rep))
+  select(-c(site_name:blockID))
 
-env_all <- wide_datw %>%
+env_all <- 
+  wide_datw %>%
   left_join(., cc_env, by = c("loc", "cc_trt")) %>%
   dplyr::select(loc_sys, cc_trt, rep, cc_mean:cc_stab) %>%
   left_join(., dat, by = c("loc_sys", "cc_trt", "rep")) %>%
@@ -72,7 +75,8 @@ env_all <- wide_datw %>%
   unite(loc_sys, location, crop_sys, sep = " ", remove = FALSE) %>%
   mutate(loc_sys = str_to_sentence(loc_sys))
 
-cc_div_tests <- matrix_dat %>%
+cc_div_tests <- 
+  matrix_dat %>%
   mutate(shan = diversity(.)) %>%
   mutate(shan_hill= exp(shan))%>%
   bind_cols(env_all, .) %>%

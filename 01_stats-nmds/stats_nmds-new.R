@@ -78,7 +78,8 @@ cc_pdist <- dist(scores(nmds_res, display = 'sites'))
 #--need help knowing what to report about this fit
 
 site_scores <- 
-  as.data.frame(scores(nmds_res)) %>%
+  #as.data.frame(scores(nmds_res)) %>% # this wasn't working
+  as.data.frame(scores(nmds_res)$sites) %>% #I changed it to this
   rownames_to_column() %>% 
   separate(rowname, into = c("site", "sys_trt", "cc_trt", "blockID", "rep"), remove = F) %>% 
   rename(site_sys = rowname) %>% 
